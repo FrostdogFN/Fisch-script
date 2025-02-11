@@ -1,0 +1,166 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Frost Hub ❄️",  -- Added emoji here
+   LoadingTitle = "Loading Frost Hub 🌟",  -- Added emoji here
+   LoadingSubtitle = "by FrostDev",  -- Changed to "FrostDev"
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil,
+      FileName = "FrostHubSettings"
+   },
+   Discord = {
+      Enabled = true,  -- Discord can be enabled if needed
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System 🔑",  -- Added emoji here
+      Note = "No method of obtaining the key is provided",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
+   }
+})
+
+local FishingTab = Window:CreateTab("🎣 Fishing")  -- Added emoji here
+
+local loopEnabled = false
+local function resizeButtonLoop()
+    while loopEnabled do
+        local buttonPath = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+            and game.Players.LocalPlayer.PlayerGui:FindFirstChild("shakeui")
+            and game.Players.LocalPlayer.PlayerGui.shakeui:FindFirstChild("safezone")
+            and game.Players.LocalPlayer.PlayerGui.shakeui.safezone:FindFirstChild("button")
+
+        if buttonPath then
+            buttonPath.Size = UDim2.new(0, 2000, 0, 2000)
+            buttonPath.BackgroundTransparency = 1
+        else
+            print("did not find a button in the path!?!?")
+        end
+        wait(0.01)
+    end
+end
+
+FishingTab:CreateToggle({
+   Name = "🔄 Change Shake Size",  -- Added emoji here
+   CurrentValue = false,
+   Flag = "ToggleResize",
+   Callback = function(Value)
+       loopEnabled = Value
+       if loopEnabled then
+           resizeButtonLoop()
+       end
+   end,
+})
+
+FishingTab:CreateButton({
+    Name = "🎯 Perfect Cast",  -- Added emoji here
+    Callback = function()
+        local args = {
+            [1] = 100,
+            [2] = 2
+        }
+        local rod = game:GetService("Players").LocalPlayer.Character:FindFirstChild("Flimsy Rod")
+        if rod then
+            rod.events.cast:FireServer(unpack(args))
+        else
+            warn("Flimsy Rod not found in character.")
+        end
+    end
+})
+
+FishingTab:CreateButton({
+    Name = "🔄 Perfect Reel",  -- Added emoji here
+    Callback = function()
+        local args = {
+            [1] = 100,
+            [2] = true
+        }
+        local reelfinished = game:GetService("ReplicatedStorage"):WaitForChild("events"):WaitForChild("reelfinished")
+        reelfinished:FireServer(unpack(args))
+    end
+})
+
+local clickingEnabled = false
+
+local function startClicking()
+    while clickingEnabled do
+        local button = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("TargetButton")
+        if button and button:IsA("TextButton") then
+            button.MouseButton1Click:Fire()
+        end
+        wait(0.1)
+    end
+end
+
+FishingTab:CreateToggle({
+    Name = "🖱️ Auto GUI Click",  -- Added emoji here
+    CurrentValue = false,
+    Flag = "AutoClickToggle",
+    Callback = function(Value)
+        clickingEnabled = Value
+        if clickingEnabled then
+            startClicking()
+        end
+    end,
+})
+
+local farmEnabled = false
+
+local function startAutoFarm()
+    while farmEnabled do
+        local rod = game:GetService("Players").LocalPlayer.Character:FindFirstChild("Flimsy Rod")
+        if rod then
+            local castArgs = { [1] = 100, [2] = 2 }
+            rod.events.cast:FireServer(unpack(castArgs))
+        else
+            warn("Flimsy Rod not equipped.")
+            break
+        end
+
+        local shakeGui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("shakeui")
+        if shakeGui then
+            repeat wait(0.1) until not shakeGui or not shakeGui:FindFirstChild("safezone") or not shakeGui.safezone:FindFirstChild("button") or not shakeGui.safezone.button.Visible
+        end
+
+        local reelGui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("reel")
+        if reelGui then
+            wait(1)
+            while reelGui and farmEnabled do
+                local reelArgs = { [1] = 100, [2] = true }
+                local reelfinished = game:GetService("ReplicatedStorage"):WaitForChild("events"):WaitForChild("reelfinished")
+                reelfinished:FireServer(unpack(reelArgs))
+                wait(0.1)
+                reelGui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("reel")
+            end
+        end
+        wait(1)
+    end
+end
+
+FishingTab:CreateToggle({
+    Name = "🚜 Enable Auto-Farm",  -- Added emoji here
+    CurrentValue = false,
+    Flag = "AutoFarmToggle",
+    Callback = function(Value)
+        farmEnabled = Value
+        if farmEnabled then
+            startAutoFarm()
+        end
+    end,
+})
+
+local TeleportTab = Window:CreateTab("🌍 Teleports")  -- Added emoji here
+
+-- Example teleport button with emoji
+TeleportTab:CreateButton({
+    Name = "🌊 Roslit Bay",  -- Added emoji here
+    Callback = function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1456.52075, 149.100327, 634.93042)
+    end
+})
