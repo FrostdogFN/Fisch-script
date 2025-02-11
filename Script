@@ -1,144 +1,157 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield
+local success, errorMsg = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield', true))()
+end)
 
-local Window = Rayfield:CreateWindow({
-   Name = "Frost Hub ❄️",
-   LoadingTitle = "Loading Frost Hub 🌟",
-   LoadingSubtitle = "by FrostDev",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = nil,
-      FileName = "FrostHubSettings"
-   },
-   Discord = {
-      Enabled = true,
-      Invite = "https://discord.gg/n4tUwcJ6",
-      RememberJoins = true
-   },
-   KeySystem = false,
-   KeySettings = {
-      Title = "Untitled",
-      Subtitle = "Key System 🔑",
-      Note = "No method of obtaining the key is provided",
-      FileName = "Key",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"Hello"}
-   }
-})
+if not success then
+    warn("Failed to load Rayfield: " .. errorMsg)
+else
+    local Window = Rayfield:CreateWindow({
+        Name = "Frost Hub ❄️",
+        LoadingTitle = "Loading Frost Hub 🌟",
+        LoadingSubtitle = "by FrostDev",
+        ConfigurationSaving = {
+            Enabled = true,
+            FolderName = nil,
+            FileName = "FrostHubSettings"
+        },
+        Discord = {
+            Enabled = true,
+            Invite = "https://discord.gg/n4tUwcJ6",
+            RememberJoins = true
+        },
+        KeySystem = false,
+        KeySettings = {
+            Title = "Untitled",
+            Subtitle = "Key System 🔑",
+            Note = "No method of obtaining the key is provided",
+            FileName = "Key",
+            SaveKey = true,
+            GrabKeyFromSite = false,
+            Key = {"Hello"}
+        }
+    })
 
-local TeleportTab = Window:CreateTab("🌍 Teleports")
+    local TeleportTab = Window:CreateTab("🌍 Teleports")
 
--- Only include Roslit Bay
-local teleportLocations = {
-    ["🌊 Roslit Bay"] = Vector3.new(-1600, 130, 500)
-}
+    -- Only include Roslit Bay
+    local teleportLocations = {
+        ["🌊 Roslit Bay"] = Vector3.new(-1600, 130, 500)
+    }
 
-local selectedLocation = nil
-TeleportTab:CreateDropdown({
-    Name = "Select Location",
-    Options = table.keys(teleportLocations),
-    Callback = function(Value)
-        selectedLocation = teleportLocations[Value]
-    end
-})
-
-TeleportTab:CreateButton({
-    Name = "🚀 Teleport",
-    Callback = function()
-        if selectedLocation then
-            local player = game.Players.LocalPlayer
-            local character = player.Character
-            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-            
-            -- You can check the player's position using their current location
-            local playerPosition = humanoidRootPart.Position
-            print("Player's current position: ", playerPosition)
-
-            -- Teleport to Roslit Bay
-            humanoidRootPart.CFrame = CFrame.new(selectedLocation)
-        else
-            warn("No location selected!")
+    local selectedLocation = nil
+    TeleportTab:CreateDropdown({
+        Name = "Select Location",
+        Options = table.keys(teleportLocations),
+        Callback = function(Value)
+            selectedLocation = teleportLocations[Value]
         end
-    end
-})
+    })
 
--- Miscellaneous Tab
-local MiscTab = Window:CreateTab("⚙️ Miscellaneous")
+    TeleportTab:CreateButton({
+        Name = "🚀 Teleport",
+        Callback = function()
+            if selectedLocation then
+                local player = game.Players.LocalPlayer
+                local character = player.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--- ESP Toggle
-local espEnabled = true  -- Toggle ESP on or off
-local playersESP = {}
+                    -- You can check the player's position using their current location
+                    local playerPosition = humanoidRootPart.Position
+                    print("Player's current position: ", playerPosition)
 
--- Function to create ESP for a player
-local function createESP(player)
-    local character = player.Character
-    if character and character:FindFirstChild("HumanoidRootPart") then
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-        
-        -- Create a BillboardGui for ESP
-        local espGui = Instance.new("BillboardGui")
-        espGui.Parent = game.CoreGui
-        espGui.Adornee = humanoidRootPart
-        espGui.Size = UDim2.new(0, 100, 0, 50)
-        espGui.StudsOffset = Vector3.new(0, 2, 0)
-        espGui.AlwaysOnTop = true
-        espGui.MaxDistance = 2000
-
-        -- Create text label to show player's name and distance
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Parent = espGui
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.TextColor3 = Color3.new(1, 1, 1)
-        textLabel.TextStrokeTransparency = 0.5
-        textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-        textLabel.TextScaled = true
-
-        -- Update the text with player’s name and distance
-        local function updateESP()
-            if humanoidRootPart then
-                local distance = math.floor((humanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
-                textLabel.Text = player.Name .. " - " .. distance .. " studs"
+                    -- Teleport to Roslit Bay
+                    humanoidRootPart.CFrame = CFrame.new(selectedLocation)
+                else
+                    warn("HumanoidRootPart not found!")
+                end
+            else
+                warn("No location selected!")
             end
         end
+    })
 
-        -- Update the ESP every frame
-        game:GetService("RunService").Heartbeat:Connect(updateESP)
+    -- Miscellaneous Tab
+    local MiscTab = Window:CreateTab("⚙️ Miscellaneous")
+
+    -- ESP Toggle
+    local espEnabled = true  -- Toggle ESP on or off
+    local playersESP = {}
+
+    -- Function to create ESP for a player
+    local function createESP(player)
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+            -- Create a BillboardGui for ESP
+            local espGui = Instance.new("BillboardGui")
+            espGui.Parent = game.CoreGui
+            espGui.Adornee = humanoidRootPart
+            espGui.Size = UDim2.new(0, 100, 0, 50)
+            espGui.StudsOffset = Vector3.new(0, 2, 0)
+            espGui.AlwaysOnTop = true
+            espGui.MaxDistance = 2000
+
+            -- Create text label to show player's name and distance
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Parent = espGui
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.TextColor3 = Color3.new(1, 1, 1)
+            textLabel.TextStrokeTransparency = 0.5
+            textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+            textLabel.TextScaled = true
+
+            -- Update the text with player’s name and distance
+            local function updateESP()
+                if humanoidRootPart then
+                    local distance = math.floor((humanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+                    textLabel.Text = player.Name .. " - " .. distance .. " studs"
+                end
+            end
+
+            -- Update the ESP every frame
+            game:GetService("RunService").Heartbeat:Connect(updateESP)
+        else
+            print("ESP: No humanoidRootPart found for " .. player.Name)
+        end
     end
-end
 
--- Loop to track and update all players in the game
-game.Players.PlayerAdded:Connect(function(player)
-    if player ~= game.Players.LocalPlayer then
-        createESP(player)
-    end
-end)
+    -- Loop to track and update all players in the game
+    game.Players.PlayerAdded:Connect(function(player)
+        if player ~= game.Players.LocalPlayer then
+            createESP(player)
+        end
+    end)
 
--- Remove ESP when players leave
-game.Players.PlayerRemoving:Connect(function(player)
-    if playersESP[player] then
-        playersESP[player]:Destroy()
-        playersESP[player] = nil
-    end
-end)
+    -- Remove ESP when players leave
+    game.Players.PlayerRemoving:Connect(function(player)
+        if playersESP[player] then
+            playersESP[player]:Destroy()
+            playersESP[player] = nil
+        end
+    end)
 
--- ESP Toggle Button
-MiscTab:CreateToggle({
-    Name = "Enable ESP",
-    CurrentValue = espEnabled,
-    Callback = function(Value)
-        espEnabled = Value
-        -- Enable or disable the ESP
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                if espEnabled then
-                    createESP(player)
-                else
-                    if playersESP[player] then
-                        playersESP[player]:Destroy()
+    -- ESP Toggle Button
+    MiscTab:CreateToggle({
+        Name = "Enable ESP",
+        CurrentValue = espEnabled,
+        Callback = function(Value)
+            espEnabled = Value
+            -- Enable or disable the ESP
+            for _, player in pairs(game.Players:GetPlayers()) do
+                if player ~= game.Players.LocalPlayer then
+                    if espEnabled then
+                        createESP(player)
+                    else
+                        if playersESP[player] then
+                            playersESP[player]:Destroy()
+                        end
                     end
                 end
             end
         end
-    end
-})
+    })
+end
