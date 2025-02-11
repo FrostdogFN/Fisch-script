@@ -1,23 +1,23 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Frost Hub ❄️",  -- Added emoji here
-   LoadingTitle = "Loading Frost Hub 🌟",  -- Added emoji here
-   LoadingSubtitle = "by FrostDev",  -- Changed to "FrostDev"
+   Name = "Frost Hub ❄️",
+   LoadingTitle = "Loading Frost Hub 🌟",
+   LoadingSubtitle = "by FrostDev",
    ConfigurationSaving = {
       Enabled = true,
       FolderName = nil,
       FileName = "FrostHubSettings"
    },
    Discord = {
-      Enabled = true,  -- Discord can be enabled if needed
-      Invite = "noinvitelink",
+      Enabled = true,
+      Invite = "https://discord.gg/n4tUwcJ6",
       RememberJoins = true
    },
    KeySystem = false,
    KeySettings = {
       Title = "Untitled",
-      Subtitle = "Key System 🔑",  -- Added emoji here
+      Subtitle = "Key System 🔑",
       Note = "No method of obtaining the key is provided",
       FileName = "Key",
       SaveKey = true,
@@ -26,141 +26,119 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local FishingTab = Window:CreateTab("🎣 Fishing")  -- Added emoji here
+local TeleportTab = Window:CreateTab("🌍 Teleports")
 
-local loopEnabled = false
-local function resizeButtonLoop()
-    while loopEnabled do
-        local buttonPath = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
-            and game.Players.LocalPlayer.PlayerGui:FindFirstChild("shakeui")
-            and game.Players.LocalPlayer.PlayerGui.shakeui:FindFirstChild("safezone")
-            and game.Players.LocalPlayer.PlayerGui.shakeui.safezone:FindFirstChild("button")
+-- Only include Roslit Bay
+local teleportLocations = {
+    ["🌊 Roslit Bay"] = Vector3.new(-1600, 130, 500)
+}
 
-        if buttonPath then
-            buttonPath.Size = UDim2.new(0, 2000, 0, 2000)
-            buttonPath.BackgroundTransparency = 1
-        else
-            print("did not find a button in the path!?!?")
-        end
-        wait(0.01)
-    end
-end
-
-FishingTab:CreateToggle({
-   Name = "🔄 Change Shake Size",  -- Added emoji here
-   CurrentValue = false,
-   Flag = "ToggleResize",
-   Callback = function(Value)
-       loopEnabled = Value
-       if loopEnabled then
-           resizeButtonLoop()
-       end
-   end,
-})
-
-FishingTab:CreateButton({
-    Name = "🎯 Perfect Cast",  -- Added emoji here
-    Callback = function()
-        local args = {
-            [1] = 100,
-            [2] = 2
-        }
-        local rod = game:GetService("Players").LocalPlayer.Character:FindFirstChild("Flimsy Rod")
-        if rod then
-            rod.events.cast:FireServer(unpack(args))
-        else
-            warn("Flimsy Rod not found in character.")
-        end
-    end
-})
-
-FishingTab:CreateButton({
-    Name = "🔄 Perfect Reel",  -- Added emoji here
-    Callback = function()
-        local args = {
-            [1] = 100,
-            [2] = true
-        }
-        local reelfinished = game:GetService("ReplicatedStorage"):WaitForChild("events"):WaitForChild("reelfinished")
-        reelfinished:FireServer(unpack(args))
-    end
-})
-
-local clickingEnabled = false
-
-local function startClicking()
-    while clickingEnabled do
-        local button = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("TargetButton")
-        if button and button:IsA("TextButton") then
-            button.MouseButton1Click:Fire()
-        end
-        wait(0.1)
-    end
-end
-
-FishingTab:CreateToggle({
-    Name = "🖱️ Auto GUI Click",  -- Added emoji here
-    CurrentValue = false,
-    Flag = "AutoClickToggle",
+local selectedLocation = nil
+TeleportTab:CreateDropdown({
+    Name = "Select Location",
+    Options = table.keys(teleportLocations),
     Callback = function(Value)
-        clickingEnabled = Value
-        if clickingEnabled then
-            startClicking()
-        end
-    end,
+        selectedLocation = teleportLocations[Value]
+    end
 })
 
-local farmEnabled = false
+TeleportTab:CreateButton({
+    Name = "🚀 Teleport",
+    Callback = function()
+        if selectedLocation then
+            local player = game.Players.LocalPlayer
+            local character = player.Character
+            local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+            
+            -- You can check the player's position using their current location
+            local playerPosition = humanoidRootPart.Position
+            print("Player's current position: ", playerPosition)
 
-local function startAutoFarm()
-    while farmEnabled do
-        local rod = game:GetService("Players").LocalPlayer.Character:FindFirstChild("Flimsy Rod")
-        if rod then
-            local castArgs = { [1] = 100, [2] = 2 }
-            rod.events.cast:FireServer(unpack(castArgs))
+            -- Teleport to Roslit Bay
+            humanoidRootPart.CFrame = CFrame.new(selectedLocation)
         else
-            warn("Flimsy Rod not equipped.")
-            break
+            warn("No location selected!")
         end
+    end
+})
 
-        local shakeGui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("shakeui")
-        if shakeGui then
-            repeat wait(0.1) until not shakeGui or not shakeGui:FindFirstChild("safezone") or not shakeGui.safezone:FindFirstChild("button") or not shakeGui.safezone.button.Visible
-        end
+-- Miscellaneous Tab
+local MiscTab = Window:CreateTab("⚙️ Miscellaneous")
 
-        local reelGui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("reel")
-        if reelGui then
-            wait(1)
-            while reelGui and farmEnabled do
-                local reelArgs = { [1] = 100, [2] = true }
-                local reelfinished = game:GetService("ReplicatedStorage"):WaitForChild("events"):WaitForChild("reelfinished")
-                reelfinished:FireServer(unpack(reelArgs))
-                wait(0.1)
-                reelGui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("reel")
+-- ESP Toggle
+local espEnabled = true  -- Toggle ESP on or off
+local playersESP = {}
+
+-- Function to create ESP for a player
+local function createESP(player)
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        
+        -- Create a BillboardGui for ESP
+        local espGui = Instance.new("BillboardGui")
+        espGui.Parent = game.CoreGui
+        espGui.Adornee = humanoidRootPart
+        espGui.Size = UDim2.new(0, 100, 0, 50)
+        espGui.StudsOffset = Vector3.new(0, 2, 0)
+        espGui.AlwaysOnTop = true
+        espGui.MaxDistance = 2000
+
+        -- Create text label to show player's name and distance
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Parent = espGui
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.TextColor3 = Color3.new(1, 1, 1)
+        textLabel.TextStrokeTransparency = 0.5
+        textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+        textLabel.TextScaled = true
+
+        -- Update the text with player’s name and distance
+        local function updateESP()
+            if humanoidRootPart then
+                local distance = math.floor((humanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+                textLabel.Text = player.Name .. " - " .. distance .. " studs"
             end
         end
-        wait(1)
+
+        -- Update the ESP every frame
+        game:GetService("RunService").Heartbeat:Connect(updateESP)
     end
 end
 
-FishingTab:CreateToggle({
-    Name = "🚜 Enable Auto-Farm",  -- Added emoji here
-    CurrentValue = false,
-    Flag = "AutoFarmToggle",
+-- Loop to track and update all players in the game
+game.Players.PlayerAdded:Connect(function(player)
+    if player ~= game.Players.LocalPlayer then
+        createESP(player)
+    end
+end)
+
+-- Remove ESP when players leave
+game.Players.PlayerRemoving:Connect(function(player)
+    if playersESP[player] then
+        playersESP[player]:Destroy()
+        playersESP[player] = nil
+    end
+end)
+
+-- ESP Toggle Button
+MiscTab:CreateToggle({
+    Name = "Enable ESP",
+    CurrentValue = espEnabled,
     Callback = function(Value)
-        farmEnabled = Value
-        if farmEnabled then
-            startAutoFarm()
+        espEnabled = Value
+        -- Enable or disable the ESP
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                if espEnabled then
+                    createESP(player)
+                else
+                    if playersESP[player] then
+                        playersESP[player]:Destroy()
+                    end
+                end
+            end
         end
-    end,
-})
-
-local TeleportTab = Window:CreateTab("🌍 Teleports")  -- Added emoji here
-
--- Example teleport button with emoji
-TeleportTab:CreateButton({
-    Name = "🌊 Roslit Bay",  -- Added emoji here
-    Callback = function()
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-1456.52075, 149.100327, 634.93042)
     end
 })
